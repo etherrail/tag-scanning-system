@@ -1,0 +1,2 @@
+source /Users/levvij/Repositories/etherrail-tag-scanning-system/firmware/build/bootloader/gdbinit/symbols
+source /Users/levvij/Repositories/etherrail-tag-scanning-system/firmware/build/bootloader/gdbinit/connect

@@ -1,0 +1,7 @@
+Command: /Users/levvij/.espressif/python_env/idf5.5_py3.14_env/bin/python /Users/levvij/.espressif/esp-idf/tools/idf_monitor.py -p /dev/cu.usbmodem5ABA0276671 -b 115200 --toolchain-prefix riscv32-esp-elf- --target esp32p4 --revision 1 --decode-panic backtrace /Users/levvij/Repositories/etherrail-tag-scanning-system/firmware/build/etherrail_tag_scanning_system.elf /Users/levvij/Repositories/etherrail-tag-scanning-system/firmware/build/bootloader/bootloader.elf -m '/Users/levvij/.espressif/python_env/idf5.5_py3.14_env/bin/python' '/Users/levvij/.espressif/esp-idf/tools/idf.py' '-p' '/dev/cu.usbmodem5ABA0276671'
+[0;33m--- esp-idf-monitor 1.8.0 on /dev/cu.usbmodem5ABA0276671 115200[0m
+[0;33m--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H[0m
+[0m--- 0x4ff29ed0: [0;33mesp_bootloader_get_description[0m[0m at [0;32m/Users/levvij/.espressif/esp-idf/components/esp_bootloader_format/esp_bootloader_desc.c[0m[0m:[1;31m39[0m
+[0m--- 0x4ff2cbd0: [0;33mesp_flash_encryption_enabled[0m[0m at [0;32m/Users/levvij/.espressif/esp-idf/components/bootloader_support/src/flash_encrypt.c[0m[0m:[1;31m89[0m
+[0m--- 0x4ff29eda: [0;33mcall_start_cpu0[0m[0m at [0;32m/Users/levvij/.espressif/esp-idf/components/bootloader/subproject/main/bootloader_start.c[0m[0m:[1;31m25[0m
+[0m

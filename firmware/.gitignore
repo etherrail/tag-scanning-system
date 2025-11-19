@@ -1,2 +1,4 @@
-build
-.cache
+firmware/managed_components
+
+firmware/build
+firmware/.cache
