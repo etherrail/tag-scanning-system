@@ -3,10 +3,12 @@
 
 class Beep {
 	public:
+		Beep();
+
 		void success();
 
 	private:
-		void play(int length, int frequency);
+		void play(int duration, int frequency);
 };
 
 #endif
