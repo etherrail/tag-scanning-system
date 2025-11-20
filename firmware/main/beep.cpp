@@ -7,10 +7,11 @@
 #include "esp_check.h"
 
 #include "driver/gpio.h"
-#include "driver/i2c_master.h"
 #include "driver/i2s_std.h"
 
 #include "es8311.h"
+
+#include "driver/i2c_master.h"
 
 static const char *TAG = "Beep";
 
@@ -41,29 +42,38 @@ typedef struct {
 
 static i2s_chan_handle_t audioWriteChannel = NULL;
 
-static i2c_master_bus_handle_t s_codec_bus = NULL;
+static i2c_master_bus_handle_t codec_bus;
 
 static esp_err_t prepareCodec() {
-	i2c_master_bus_config_t bus_cfg{};
-	bus_cfg.i2c_port = CODEC_PORT;          // e.g. I2C_NUM_0
+	i2c_master_bus_config_t bus_cfg = {};
+	bus_cfg.i2c_port = CODEC_PORT;
 	bus_cfg.sda_io_num = CODEC_SDA_GPIO;
 	bus_cfg.scl_io_num = CODEC_SCL_GPIO;
 	bus_cfg.clk_source = I2C_CLK_SRC_DEFAULT;
-	bus_cfg.glitch_ignore_cnt = 7;          // typical value from docs
-	bus_cfg.intr_priority = 0;              // 0 = let driver choose
-	bus_cfg.trans_queue_depth = 0;          // 0 is fine for sync xfers
-	bus_cfg.flags.enable_internal_pullup = 0;   // match your old code
-	bus_cfg.flags.allow_pd = 0;
+	bus_cfg.glitch_ignore_cnt = 7;
+	bus_cfg.intr_priority = 0;
+	bus_cfg.flags.enable_internal_pullup = false;1
 
-	ESP_RETURN_ON_ERROR(i2c_new_master_bus(
-		&bus_cfg,
-		&s_codec_bus
-	), TAG, "i2c_new_master_bus() failed");
+	ESP_ERROR_CHECK(i2c_new_master_bus(&bus_cfg, &codec_bus));
+
+	for (uint8_t addr = 0x18; addr < 0x7f; addr++) {
+		ESP_LOGI("I2C", "ADDR %d", addr);
+
+		esp_err_t err = i2c_master_probe(codec_bus, addr, 10);
+
+		if (err == ESP_OK) {
+			ESP_LOGI("I2C", "YES");
+		} else {
+			ESP_LOGI("I2C", "NO");
+		}
+	}
 
 	return ESP_OK;
 }
 
 static esp_err_t startCodec() {
+	ESP_LOGI("CODEC", "CREATE HANDLE");
+
 	// create ES8311 handle on our I2C bus
 	es8311_handle_t es = es8311_create(CODEC_PORT, ES8311_ADDRRES_0);
 	ESP_RETURN_ON_FALSE(es, ESP_FAIL, TAG, "es8311 create failed");
@@ -76,6 +86,8 @@ static esp_err_t startCodec() {
 		.sample_frequency = AUDIO_SAMPLE_RATE,
 	};
 
+	ESP_LOGI("CODEC", "INIT");
+
 	ESP_RETURN_ON_ERROR(es8311_init(
 		es,
 		&clk_cfg,
@@ -83,17 +95,23 @@ static esp_err_t startCodec() {
 		ES8311_RESOLUTION_16
 	), TAG, "es8311 init failed");
 
+	ESP_LOGI("CODEC", "SAMPLE CONFIG");
+
 	ESP_RETURN_ON_ERROR(es8311_sample_frequency_config(
 		es,
 		AUDIO_SAMPLE_RATE * AUDIO_MCLK_MULTIPLE,
 		AUDIO_SAMPLE_RATE
 	), TAG, "es8311 sample freq failed");
 
+	ESP_LOGI("CODEC", "VOLUME");
+
 	ESP_RETURN_ON_ERROR(es8311_voice_volume_set(
 		es,
 		100, // volume 0 - 100
 		NULL
 	), TAG, "es8311 volume failed");
+
+	ESP_LOGI("CODEC", "DISABLE MICROPHONE");
 
 	// playback only (no mic echo)
 	ESP_RETURN_ON_ERROR(es8311_microphone_config(
@@ -199,10 +217,18 @@ static void playSoundTask(void *argument) {
 }
 
 Beep::Beep() {
+	ESP_LOGI("BEEP", "PREPARE CODEC");
 	ESP_ERROR_CHECK(prepareCodec());
+
+	return;
+
+	ESP_LOGI("BEEP", "PREPARE AUDIO INTERFACE");
 	ESP_ERROR_CHECK(prepareAudioInterface());
 
+	ESP_LOGI("BEEP", "START CODEC");
 	ESP_ERROR_CHECK(startCodec());
+
+	ESP_LOGI("BEEP", "START AMPLIFIER");
 	enableAmplifier(true);
 
 	ESP_LOGI("BEEP", "PREPARED");
