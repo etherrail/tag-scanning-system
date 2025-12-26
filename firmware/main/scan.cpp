@@ -1,24 +1,25 @@
-#include "scan.h"
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "freertos/queue.h"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "usb/usb_host.h"
-#include "errno.h"
-#include "driver/gpio.h"
 
-#include "usb/hid_host.h"
-#include "usb/hid_usage_keyboard.h"
-#include "usb/hid_usage_mouse.h"
+extern "C" {
+	#include "freertos/FreeRTOS.h"
+	#include "freertos/task.h"
+	#include "freertos/event_groups.h"
+	#include "freertos/queue.h"
+	#include "esp_err.h"
+	#include "esp_log.h"
+	#include "usb/usb_host.h"
+	#include "errno.h"
+	#include "driver/gpio.h"
 
-static const char *TAG = "SCAN";
+	#include "usb/hid_host.h"
+	#include "usb/hid_usage_keyboard.h"
+	#include "usb/hid_usage_mouse.h"
+}
+
+#define MAX_SCAN_LENGTH 10
 
 char scanBuffer[MAX_SCAN_LENGTH];
 int scanIndex = 0;
@@ -31,18 +32,9 @@ typedef enum {
 	APP_EVENT_HID_HOST
 } app_event_group_t;
 
-
-/**
- * @brief HID Protocol string names
- */
-static const char *hid_proto_name_str[] = {
-	"NONE",
-	"KEYBOARD",
-	"MOUSE"
-};
-
 typedef struct {
 	app_event_group_t event_group;
+
 	/* HID Host - Device related info */
 	struct {
 		hid_host_device_handle_t handle;
@@ -63,7 +55,7 @@ typedef struct {
 } key_event_t;
 
 static void key_event_callback(key_event_t *key_event) {
-	ESP_LOGI(tag, "hit %x", key_event->key_code);
+	ESP_LOGI("SCAN", "hit %x", key_event->key_code);
 
 	if (key_event->state == KEY_STATE_PRESSED) {
 		return;
@@ -193,20 +185,20 @@ void hid_host_interface_callback(
 		}
 
 		case HID_HOST_INTERFACE_EVENT_DISCONNECTED: {
-			ESP_LOGI(TAG, "device disconnected");
+			ESP_LOGI("SCAN", "device disconnected");
 			ESP_ERROR_CHECK(hid_host_device_close(hid_device_handle));
 
 			break;
 		}
 
 		case HID_HOST_INTERFACE_EVENT_TRANSFER_ERROR: {
-			ESP_LOGI(TAG, "device transfer error");
+			ESP_LOGI("SCAN", "device transfer error");
 
 			break;
 		}
 
 		default: {
-			ESP_LOGE(TAG, "device unknown error");
+			ESP_LOGE("SCAN", "device unknown error");
 
 			break;
 		}
@@ -219,7 +211,7 @@ static void usb_lib_task(void *arg) {
 	host_config.intr_flags = ESP_INTR_FLAG_LEVEL1;
 
 	ESP_ERROR_CHECK(usb_host_install(&host_config));
-	xTaskNotifyGive(arg);
+	xTaskNotifyGive((TaskHandle_t)arg);
 
 	while (true) {
 		uint32_t event_flags;
@@ -231,7 +223,7 @@ static void usb_lib_task(void *arg) {
 		}
 	}
 
-	ESP_LOGI(TAG, "USB shutdown");
+	ESP_LOGI("SCAN", "USB shutdown");
 	vTaskDelay(10); // Short delay to allow clients clean-up
 	ESP_ERROR_CHECK(usb_host_uninstall());
 	vTaskDelete(NULL);
@@ -267,7 +259,7 @@ void hid_host_device_event(
 	ESP_ERROR_CHECK(hid_host_device_get_params(hid_device_handle, &dev_params));
 
 	if (event == HID_HOST_DRIVER_EVENT_CONNECTED) {
-		ESP_LOGI(TAG, "device connected");
+		ESP_LOGI("SCAN", "device connected");
 
 		const hid_host_device_config_t dev_config = {
 			.callback = hid_host_interface_callback,

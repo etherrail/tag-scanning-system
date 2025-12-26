@@ -1,4 +1,34 @@
 dependencies:
+  espressif/cmake_utilities:
+    component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.1'
+    source:
+      registry_url: https://components.espressif.com
+      type: service
+    version: 0.5.3
+  espressif/esp_lcd_st7796:
+    component_hash: 8aa43d42736bf2fd7dc3dd945d3b35a5eebe10a9cd171b0c287edbd20f6562d8
+    dependencies:
+    - name: espressif/cmake_utilities
+      registry_url: https://components.espressif.com
+      require: private
+      version: 0.*
+    - name: idf
+      require: private
+      version: '>=4.4'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    targets:
+    - esp32
+    - esp32s2
+    - esp32s3
+    - esp32p4
+    - esp32c3
+    version: 1.3.6
   espressif/usb:
     component_hash: f583375dac409f4287f3be9c188e54200b01a5ae774194b3bfee7d67e4e269d0
     dependencies:
@@ -43,8 +73,9 @@ dependencies:
       type: idf
     version: 6.1.0
 direct_dependencies:
+- espressif/esp_lcd_st7796
 - espressif/usb_host_hid
 - idf
-manifest_hash: d18c44ef7b405d6ddab6e3b410ae977c66f3f91e66d628e14a444cbef19b84fe
+manifest_hash: 1a39a3f4b258069900b1f7b8367c9cfa0e85ddec6ca0ffe30a69e1a7aa79f205
 target: esp32p4
 version: 2.0.0

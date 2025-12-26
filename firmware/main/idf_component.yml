@@ -2,3 +2,4 @@ dependencies:
   idf:
     version: '>=4.1.0'
   espressif/usb_host_hid: '*'
+  espressif/esp_lcd_st7796: ^1.3.6
