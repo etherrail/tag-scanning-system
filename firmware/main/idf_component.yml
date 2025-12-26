@@ -1,6 +1,4 @@
 dependencies:
   idf:
     version: '>=4.1.0'
-  espressif/es8311: '*'
-  espressif/esp_codec_dev: '*'
   espressif/usb_host_hid: '*'
