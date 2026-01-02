@@ -1,5 +1,6 @@
-#include "esp_netif_ip_addr.h"
+#pragma once
 
+#include "esp_netif_ip_addr.h"
 #include <cstring>
 #include <string>
 #include <sys/param.h>
